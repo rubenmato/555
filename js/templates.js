@@ -5,6 +5,16 @@
 
   const T = (o) => o;
 
+  /* measure a type layer so presets can lay themselves out properly */
+  function textW(o) {
+    return SD.Render.textMetrics(Object.assign({ letter: 0, lineh: 1.02, strokeW: 0 }, o)).w;
+  }
+  /** largest size at which this type still fits maxW */
+  function fitSize(o, maxW) {
+    const w = textW(o);
+    return w > maxW ? SD.round(o.size * maxW / w, 1) : o.size;
+  }
+
   SD.TEMPLATES = [
     {
       id: 'box',
@@ -13,9 +23,12 @@
       build: function (r, p) {
         const cx = r.x + r.w / 2, cy = r.y + r.h * 0.3;
         const bw = Math.min(r.w * 0.94, 330), bh = bw * 0.33;
+        const type = { text: 'YOUR BRAND', font: 'archivo', size: bh * 0.52, letter: -1.5 };
+        /* the word sets the box: keep it inside with a proper margin */
+        type.size = fitSize(type, bw * 0.86);
         return [
           T({ type: 'shape', gid: 'rect', w: bw, h: bh, x: cx, y: cy, color: '#e0180f' }),
-          T({ type: 'text', text: 'YOUR BRAND', font: 'archivo', size: bh * 0.52, letter: -1.5, color: '#fbf7ef', x: cx, y: cy })
+          T(Object.assign({ type: 'text', color: '#fbf7ef', x: cx, y: cy }, type))
         ];
       }
     },
@@ -25,10 +38,14 @@
       desc: 'curved top · big hit · est. line',
       build: function (r, p) {
         const cx = r.x + r.w / 2;
+        /* short print areas (hoodie chest, cap) need the lockup driven by height too */
+        const big = Math.min(r.w * 0.52, r.h * 0.46);
+        const arc = Math.min(r.w * 0.14, r.h * 0.14);
+        const foot = Math.min(r.w * 0.062, r.h * 0.062);
         return [
-          T({ type: 'text', text: 'STREETWEAR', font: 'anton', size: r.w * 0.14, letter: 4, curve: 42, color: p.ink, x: cx, y: r.y + r.h * 0.17 }),
-          T({ type: 'text', text: '555', font: 'archivo', size: r.w * 0.52, letter: -6, color: p.ink, strokeW: 0, x: cx, y: r.y + r.h * 0.46 }),
-          T({ type: 'text', text: 'EST. 2026 — CITY LIMITS', font: 'mono', size: r.w * 0.062, letter: 2.4, color: p.ink, x: cx, y: r.y + r.h * 0.72 })
+          T({ type: 'text', text: 'STREETWEAR', font: 'anton', size: arc, letter: 4, curve: 42, color: p.ink, x: cx, y: r.y + r.h * 0.16 }),
+          T({ type: 'text', text: '555', font: 'archivo', size: big, letter: -6, color: p.ink, strokeW: 0, x: cx, y: r.y + r.h * 0.5 }),
+          T({ type: 'text', text: 'EST. 2026 — CITY LIMITS', font: 'mono', size: foot, letter: 2.4, color: p.ink, x: cx, y: r.y + r.h * 0.84 })
         ];
       }
     },
@@ -41,9 +58,13 @@
         const wide = r.w > 220;
         const cx = wide ? r.x + r.w * 0.3 : r.x + r.w * 0.5;
         const y = r.y + r.h * (wide ? 0.12 : 0.2);
+        const type = { text: '555 STUDIO', font: 'mono', size: 30 * k, letter: 2 * k };
+        const star = 42 * k, gap = 18 * k;
+        const tw = textW(type);
+        const left = cx - (star + gap + tw) / 2;      /* lay the lockup out, don't guess */
         return [
-          T({ type: 'graphic', gid: 'star', w: 42 * k, h: 42 * k, x: cx - 64 * k, y: y, color: p.hot }),
-          T({ type: 'text', text: '555 STUDIO', font: 'mono', size: 30 * k, letter: 2 * k, color: p.ink, x: cx + 22 * k, y: y })
+          T({ type: 'graphic', gid: 'star', w: star, h: star, x: left + star / 2, y: y, color: p.hot }),
+          T(Object.assign({ type: 'text', color: p.ink, x: left + star + gap + tw / 2, y: y }, type))
         ];
       }
     },
