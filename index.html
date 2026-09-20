@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>555 STUDIO — Streetwear Design Lab</title>
+<meta name="description" content="Design your own streetwear: tees, hoodies, crewnecks, sweats, denim and caps. Type, graphics, uploads, distress, export." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230b0b0c'/><text x='50' y='68' font-family='Arial Black,Arial' font-size='52' font-weight='900' text-anchor='middle' fill='%23d6ff3f'>5</text></svg>" />
+<link rel="stylesheet" href="css/fonts.css" />
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand__mark">555</span>
+    <span class="brand__name">STUDIO</span>
+    <span class="brand__sub">streetwear design lab</span>
+  </div>
+
+  <div class="topbar__actions">
+    <button class="btn btn--ghost" id="btnUndo" title="Undo (⌘/Ctrl+Z)" aria-label="Undo">↺</button>
+    <button class="btn btn--ghost" id="btnRedo" title="Redo (⌘/Ctrl+Shift+Z)" aria-label="Redo">↻</button>
+    <span class="sep" aria-hidden="true"></span>
+    <button class="btn btn--ghost" id="btnTheme" title="Toggle light / dark">◐</button>
+    <button class="btn btn--ghost" id="btnDrops" title="Saved designs">DROPS</button>
+    <button class="btn" id="btnSave">SAVE</button>
+    <button class="btn btn--accent" id="btnExport">EXPORT PNG</button>
+  </div>
+</header>
+
+<main class="shell">
+
+  <!-- ───────── LEFT PANEL ───────── -->
+  <aside class="panel panel--left" id="panelLeft">
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" data-tab="garment">GARMENT</button>
+      <button class="tab" data-tab="add">ADD</button>
+      <button class="tab" data-tab="templates">PRESETS</button>
+    </nav>
+
+    <section class="tabpane is-active" data-pane="garment">
+      <h3 class="label">Silhouette</h3>
+      <div class="garment-grid" id="garmentGrid"></div>
+
+      <h3 class="label">Fabric colour</h3>
+      <div class="swatches" id="colorSwatches"></div>
+      <label class="field">
+        <span>Custom</span>
+        <input type="color" id="colorCustom" value="#111214" />
+      </label>
+
+      <h3 class="label">View</h3>
+      <div class="segment" id="viewSegment">
+        <button data-view="front" class="is-active">FRONT</button>
+        <button data-view="back">BACK</button>
+      </div>
+
+      <h3 class="label">Stage</h3>
+      <label class="check"><input type="checkbox" id="togglePrintArea" checked /><span>Show print area</span></label>
+      <label class="check"><input type="checkbox" id="toggleTexture" checked /><span>Fabric texture</span></label>
+      <label class="check"><input type="checkbox" id="toggleShadow" checked /><span>Drop shadow</span></label>
+
+      <div class="mobile-only">
+        <h3 class="label">Library</h3>
+        <div class="btn-row">
+          <button class="btn btn--wide" id="btnDropsM">MY DROPS</button>
+          <button class="btn btn--wide" id="btnThemeM">LIGHT / DARK</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="add">
+      <h3 class="label">Type</h3>
+      <div class="btn-row">
+        <button class="btn btn--wide" id="btnAddText">+ TEXT</button>
+        <button class="btn btn--wide" id="btnAddUpload">+ UPLOAD ART</button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" hidden />
+
+      <h3 class="label">Graphics</h3>
+      <div class="graphic-grid" id="graphicGrid"></div>
+
+      <h3 class="label">Shapes</h3>
+      <div class="graphic-grid" id="shapeGrid"></div>
+    </section>
+
+    <section class="tabpane" data-pane="templates">
+      <h3 class="label">One-click starters</h3>
+      <p class="hint">Drops a ready-made layout on the current garment. Edit everything after.</p>
+      <div class="template-list" id="templateList"></div>
+      <button class="btn btn--wide btn--danger" id="btnClear">CLEAR THIS SIDE</button>
+    </section>
+  </aside>
+
+  <!-- ───────── STAGE ───────── -->
+  <section class="stage">
+    <div class="stage__bar">
+      <div class="segment segment--sm" id="viewSegment2">
+        <button data-view="front" class="is-active">FRONT</button>
+        <button data-view="back">BACK</button>
+      </div>
+      <div class="stage__title" id="stageTitle">BOXY TEE</div>
+      <div class="stage__bar-right">
+        <button class="btn btn--ghost btn--sm" id="btnRandom" title="Surprise me">RANDOM</button>
+        <button class="btn btn--ghost btn--sm" id="btnDuplicate" title="Duplicate layer (⌘/Ctrl+D)">DUPE</button>
+        <button class="btn btn--ghost btn--sm" id="btnDelete" title="Delete layer (Del)">DEL</button>
+      </div>
+    </div>
+
+    <div class="stage__canvas-wrap" id="canvasWrap">
+      <canvas id="stage" width="1000" height="1000" aria-label="Garment design canvas"></canvas>
+    </div>
+
+    <div class="stage__hint" id="stageHint">Drag to move · corner handles scale · top handle rotates · double-click type to edit</div>
+  </section>
+
+  <!-- ───────── RIGHT PANEL ───────── -->
+  <aside class="panel panel--right" id="panelRight">
+    <div class="panel__head">
+      <h3 class="label label--flush">Layers <span class="count" id="layerCount">0</span></h3>
+    </div>
+    <ul class="layers" id="layerList"></ul>
+
+    <div class="props" id="props">
+      <p class="hint hint--center">Nothing selected.<br />Add type or a graphic to start.</p>
+    </div>
+  </aside>
+</main>
+
+<!-- mobile nav -->
+<nav class="mobilebar">
+  <button data-mob="garment" class="is-active">Garment</button>
+  <button data-mob="add">Add</button>
+  <button data-mob="layers">Layers</button>
+  <button data-mob="stage">Canvas</button>
+</nav>
+
+<!-- drops / saved designs -->
+<div class="modal" id="dropsModal" hidden>
+  <div class="modal__card">
+    <div class="modal__head">
+      <h2>MY DROPS</h2>
+      <button class="btn btn--ghost" id="btnCloseDrops">CLOSE</button>
+    </div>
+    <div class="drops" id="dropsGrid"></div>
+    <div class="modal__foot">
+      <button class="btn btn--wide" id="btnExportJson">EXPORT .JSON</button>
+      <button class="btn btn--wide" id="btnImportJson">IMPORT .JSON</button>
+      <input type="file" id="jsonInput" accept="application/json" hidden />
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<script src="js/util.js"></script>
+<script src="js/garments.js"></script>
+<script src="js/graphics.js"></script>
+<script src="js/templates.js"></script>
+<script src="js/render.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
