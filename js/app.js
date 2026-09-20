@@ -1003,6 +1003,9 @@
         const o = JSON.parse(cur);
         if (o && o.layers && SD.GARMENTS[o.garment]) {
           state.garment = o.garment; state.color = o.color; state.view = o.view || 'front'; state.layers = o.layers;
+          if (o.brand) state.brand = o.brand;
+          state.accentColor = o.accentColor || null;
+          if (o.pattern) state.pattern = o.pattern;
           loaded = true;
         }
       }
