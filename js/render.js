@@ -38,15 +38,18 @@
     return measureCtx;
   }
 
-  let tmp = null;
-  function temp(w, h) {
-    if (!tmp) tmp = document.createElement('canvas');
-    if (tmp.width !== w || tmp.height !== h) { tmp.width = w; tmp.height = h; }
-    const c = tmp.getContext('2d');
+  const scratches = [];
+  /** a cleared scratch canvas of the given size (reused between frames) */
+  function scratch(i, w, h) {
+    if (!scratches[i]) scratches[i] = document.createElement('canvas');
+    const cv = scratches[i];
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    const c = cv.getContext('2d');
     c.setTransform(1, 0, 0, 1, 0, 0);
     c.clearRect(0, 0, w, h);
     return c;
   }
+  function scratchCanvas(i) { return scratches[i]; }
 
   /* ── type metrics ── */
   function fontString(L) { return Math.max(4, L.size) + 'px ' + SD.fontCss(L.font); }
@@ -204,35 +207,131 @@
     ctx.restore();
   }
 
-  /** draw one layer, applying distress through an offscreen mask when needed */
+  /** flat silhouette of whatever is on `src`, filled with `color` */
+  function tinted(src, color, W, H) {
+    const t = scratch(1, W, H);
+    t.drawImage(src, 0, 0);
+    t.globalCompositeOperation = 'source-in';
+    t.fillStyle = color;
+    t.fillRect(0, 0, W, H);
+    t.globalCompositeOperation = 'source-over';
+    return scratchCanvas(1);
+  }
+
+  /** how the ink sits on the fabric: screen print, puff, embroidery, foil, vinyl */
+  function applyFinish(ctx, layerCanvas, L, env) {
+    const W = env.pxW, H = env.pxH, k = env.res;
+    const finish = L.finish || 'print';
+
+    if (finish === 'puff' || finish === 'embroidery') {
+      const depth = finish === 'puff' ? 8 : 2.6;
+      const dark = tinted(layerCanvas, 'rgba(0,0,0,.55)', W, H);
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.filter = 'blur(' + Math.max(1, 2.2 * k) + 'px)';
+      ctx.globalAlpha = finish === 'puff' ? 0.85 : 0.6;
+      ctx.drawImage(dark, depth * k * 0.6, depth * k);
+      ctx.filter = 'none';
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+
+    /* the layer itself */
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(layerCanvas, 0, 0);
+    ctx.restore();
+
+    if (finish === 'puff') {
+      const lite = tinted(layerCanvas, 'rgba(255,255,255,.5)', W, H);
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.filter = 'blur(' + Math.max(1, 2.6 * k) + 'px)';
+      ctx.globalAlpha = 0.5;
+      ctx.drawImage(lite, -2.4 * k, -3.2 * k);
+      ctx.filter = 'none';
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.restore();
+    }
+
+    if (finish === 'embroidery' || finish === 'foil' || finish === 'vinyl') {
+      const t = scratch(2, W, H);
+      t.drawImage(layerCanvas, 0, 0);
+      t.globalCompositeOperation = 'source-atop';
+      if (finish === 'embroidery') {
+        const st = SD.stitchTexture();
+        const pat = t.createPattern(st, 'repeat');
+        if (pat && pat.setTransform) {
+          const m = new DOMMatrix();
+          pat.setTransform(m.rotate(38).scale(Math.max(0.6, k * 0.9)));
+        }
+        t.fillStyle = pat;
+        t.fillRect(0, 0, W, H);
+      } else {
+        const g = t.createLinearGradient(0, 0, W * 0.7, H);
+        if (finish === 'foil') {
+          g.addColorStop(0, 'rgba(255,255,255,.9)');
+          g.addColorStop(0.16, 'rgba(0,0,0,.42)');
+          g.addColorStop(0.34, 'rgba(255,255,255,.8)');
+          g.addColorStop(0.52, 'rgba(0,0,0,.5)');
+          g.addColorStop(0.7, 'rgba(255,255,255,.92)');
+          g.addColorStop(0.86, 'rgba(0,0,0,.36)');
+          g.addColorStop(1, 'rgba(255,255,255,.7)');
+        } else {
+          g.addColorStop(0, 'rgba(255,255,255,.34)');
+          g.addColorStop(0.42, 'rgba(255,255,255,0)');
+          g.addColorStop(1, 'rgba(0,0,0,.14)');
+        }
+        t.fillStyle = g;
+        t.fillRect(0, 0, W, H);
+      }
+      t.globalCompositeOperation = 'source-over';
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(scratchCanvas(2), 0, 0);
+      ctx.restore();
+    }
+  }
+
+  /** draw one layer; distress and non-flat finishes route through a scratch canvas */
   function drawLayer(ctx, L, env) {
     if (L.hidden) return;
     const distress = L.distress || 0;
-    if (distress <= 0) { drawLayerRaw(ctx, L, env.onload); return; }
+    const finish = L.finish || 'print';
+    if (distress <= 0 && finish === 'print') { drawLayerRaw(ctx, L, env.onload); return; }
 
     const W = env.pxW, H = env.pxH;
-    const t = temp(W, H);
+    const t = scratch(0, W, H);
     t.setTransform(env.res, 0, 0, env.res, 0, 0);
     drawLayerRaw(t, L, env.onload);
     t.setTransform(1, 0, 0, 1, 0, 0);
-    t.globalCompositeOperation = 'destination-out';
-    const g = SD.grungeTexture();
-    const seed = SD.rng((L.seed || 1) * 977);
-    const scale = 1.1 + seed() * 0.9;
-    t.globalAlpha = SD.clamp(distress * 1.05, 0, 1);
-    for (let oy = -1; oy < Math.ceil(H / (g.height * scale)) + 1; oy++) {
-      for (let ox = -1; ox < Math.ceil(W / (g.width * scale)) + 1; ox++) {
-        t.drawImage(g, ox * g.width * scale + seed() * 40, oy * g.height * scale + seed() * 40,
-          g.width * scale, g.height * scale);
-      }
-    }
-    t.globalAlpha = 1;
-    t.globalCompositeOperation = 'source-over';
 
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.drawImage(tmp, 0, 0);
-    ctx.restore();
+    if (distress > 0) {
+      t.globalCompositeOperation = 'destination-out';
+      const g = SD.grungeTexture();
+      const seed = SD.rng((L.seed || 1) * 977);
+      const scale = 1.1 + seed() * 0.9;
+      t.globalAlpha = SD.clamp(distress * 1.05, 0, 1);
+      for (let oy = -1; oy < Math.ceil(H / (g.height * scale)) + 1; oy++) {
+        for (let ox = -1; ox < Math.ceil(W / (g.width * scale)) + 1; ox++) {
+          t.drawImage(g, ox * g.width * scale + seed() * 40, oy * g.height * scale + seed() * 40,
+            g.width * scale, g.height * scale);
+        }
+      }
+      t.globalAlpha = 1;
+      t.globalCompositeOperation = 'source-over';
+    }
+
+    if (finish === 'print') {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(scratchCanvas(0), 0, 0);
+      ctx.restore();
+    } else {
+      applyFinish(ctx, scratchCanvas(0), L, env);
+    }
   }
 
   /* ── garment ── */
@@ -254,11 +353,58 @@
       ctx.filter = 'none';
     }
 
-    /* fabric */
+    /* fabric — pieces that sit behind (a hood) get their outline first so the
+       body covers it, instead of leaving a seam across the shoulders */
+    const behind = v.behind || 0;
     ctx.fillStyle = base;
     v.body.forEach((d) => ctx.fill(P(d)));
+    if (behind) {
+      ctx.strokeStyle = SD.rgba('#000000', dark ? 0.5 : 0.26);
+      ctx.lineWidth = 3;
+      for (let i = 0; i < behind; i++) ctx.stroke(P(v.body[i]));
+      ctx.fillStyle = base;
+      for (let i = behind; i < v.body.length; i++) ctx.fill(P(v.body[i]));
+    }
 
     const sil = silhouette(state.garment, state.view);
+
+    /* contrast panels — varsity sleeves, track stripes, raglan, ribbing */
+    if (v.accent && v.accent.length) {
+      ctx.save();
+      ctx.clip(sil);
+      ctx.fillStyle = SD.accentFor(state);
+      v.accent.forEach((d) => ctx.fill(P(d)));
+      ctx.restore();
+    }
+
+    /* all-over print */
+    const pat = state.pattern;
+    if (pat && pat.id && pat.id !== 'none') {
+      const c1 = base, c2 = pat.color || (dark ? '#f4f2ec' : '#111214');
+      const pc = SD.patternCanvas(pat.id, c1, c2, { graphic: pat.graphic, text: pat.text, font: pat.font });
+      if (pc) {
+        ctx.save();
+        ctx.clip(sil);
+        ctx.globalAlpha = pat.opacity == null ? 1 : pat.opacity;
+        if (SD.PATTERNS[pat.id].full) {
+          ctx.drawImage(pc, 0, 0, SPACE, SPACE);
+        } else {
+          const p2 = ctx.createPattern(pc, 'repeat');
+          const k = (pat.scale == null ? 1 : pat.scale) * (SD.PATTERNS[pat.id].base || 0.9);
+          if (p2.setTransform) {
+            const m = new DOMMatrix();
+            p2.setTransform(m.rotate(pat.rot || 0).scale(k, k));
+            ctx.fillStyle = p2;
+            ctx.fillRect(0, 0, SPACE, SPACE);
+          } else {
+            ctx.fillStyle = p2;
+            ctx.fillRect(0, 0, SPACE, SPACE);
+          }
+        }
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+    }
 
     /* global light across the garment */
     ctx.save();
@@ -323,9 +469,9 @@
       ctx.stroke();
     });
     /* silhouette edge */
-    ctx.strokeStyle = SD.rgba(SD.isDark(state.color) ? '#000000' : '#000000', SD.isDark(state.color) ? 0.55 : 0.28);
+    ctx.strokeStyle = SD.rgba('#000000', SD.isDark(state.color) ? 0.55 : 0.28);
     ctx.lineWidth = 3;
-    (v.body || []).forEach((d) => ctx.stroke(P(d)));
+    (v.body || []).forEach((d, i) => { if (i >= (v.behind || 0)) ctx.stroke(P(d)); });
   }
 
   function paintTexture(ctx, info) {
@@ -369,7 +515,7 @@
     paintDetails(ctx, info, state);
 
     if (!opts.flat && state.printArea) {
-      const r = info.v.print;
+      const r = SD.zoneRect(state.garment, state.view, state.zone);
       ctx.save();
       ctx.setLineDash([9, 8]);
       ctx.lineWidth = 2;
@@ -378,7 +524,7 @@
       ctx.setLineDash([]);
       ctx.font = '600 15px ' + '"Space Mono", monospace';
       ctx.fillStyle = 'rgba(214,255,63,.8)';
-      ctx.fillText('PRINT AREA', r.x, r.y - 9);
+      ctx.fillText(r.name || 'PRINT AREA', r.x, r.y - 9);
       ctx.restore();
     }
 

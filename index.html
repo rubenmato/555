@@ -23,7 +23,8 @@
     <button class="btn btn--ghost" id="btnRedo" title="Redo (⌘/Ctrl+Shift+Z)" aria-label="Redo">↻</button>
     <span class="sep" aria-hidden="true"></span>
     <button class="btn btn--ghost" id="btnTheme" title="Toggle light / dark">◐</button>
-    <button class="btn btn--ghost" id="btnDrops" title="Saved designs">DROPS</button>
+    <button class="btn btn--ghost" id="btnDrops" title="Your collection">COLLECTION</button>
+    <button class="btn btn--ghost" id="btnTechPack" title="Production sheet">TECH PACK</button>
     <button class="btn" id="btnSave">SAVE</button>
     <button class="btn btn--accent" id="btnExport">EXPORT PNG</button>
   </div>
@@ -40,6 +41,12 @@
     </nav>
 
     <section class="tabpane is-active" data-pane="garment">
+      <h3 class="label">Brand</h3>
+      <label class="field">
+        <span>Name</span>
+        <input type="text" id="brandName" value="555 STUDIO" maxlength="28" spellcheck="false" />
+      </label>
+
       <h3 class="label">Silhouette</h3>
       <div class="garment-grid" id="garmentGrid"></div>
 
@@ -49,6 +56,36 @@
         <span>Custom</span>
         <input type="color" id="colorCustom" value="#111214" />
       </label>
+
+      <div id="accentBlock" hidden>
+        <h3 class="label">Contrast panels</h3>
+        <div class="swatches" id="accentSwatches"></div>
+        <label class="field">
+          <span>Custom</span>
+          <input type="color" id="accentCustom" value="#f4f2ec" />
+        </label>
+      </div>
+
+      <h3 class="label">All-over print</h3>
+      <div class="pattern-grid" id="patternGrid"></div>
+      <div id="patternOpts" hidden>
+        <label class="field">
+          <span>Print ink</span>
+          <input type="color" id="patternColor" value="#f4f2ec" />
+        </label>
+        <label class="field" id="monoRow" hidden>
+          <span>Motif</span>
+          <select id="monoGraphic"></select>
+        </label>
+        <label class="field" id="wordRow" hidden>
+          <span>Word</span>
+          <input type="text" id="wordText" maxlength="14" spellcheck="false" />
+        </label>
+        <div id="patternSliders"></div>
+      </div>
+
+      <h3 class="label">Placement</h3>
+      <div class="chips" id="zoneChips"></div>
 
       <h3 class="label">View</h3>
       <div class="segment" id="viewSegment">
@@ -64,7 +101,7 @@
       <div class="mobile-only">
         <h3 class="label">Library</h3>
         <div class="btn-row">
-          <button class="btn btn--wide" id="btnDropsM">MY DROPS</button>
+          <button class="btn btn--wide" id="btnDropsM">THE COLLECTION</button>
           <button class="btn btn--wide" id="btnThemeM">LIGHT / DARK</button>
         </div>
       </div>
@@ -140,11 +177,12 @@
 <div class="modal" id="dropsModal" hidden>
   <div class="modal__card">
     <div class="modal__head">
-      <h2>MY DROPS</h2>
+      <h2>THE COLLECTION</h2>
       <button class="btn btn--ghost" id="btnCloseDrops">CLOSE</button>
     </div>
     <div class="drops" id="dropsGrid"></div>
     <div class="modal__foot">
+      <button class="btn btn--wide btn--accent" id="btnLookbook">EXPORT LOOKBOOK</button>
       <button class="btn btn--wide" id="btnExportJson">EXPORT .JSON</button>
       <button class="btn btn--wide" id="btnImportJson">IMPORT .JSON</button>
       <input type="file" id="jsonInput" accept="application/json" hidden />
@@ -157,7 +195,9 @@
 <script src="js/util.js"></script>
 <script src="js/garments.js"></script>
 <script src="js/graphics.js"></script>
+<script src="js/patterns.js"></script>
 <script src="js/render.js"></script>
+<script src="js/sheets.js"></script>
 <script src="js/templates.js"></script>
 <script src="js/app.js"></script>
 </body>

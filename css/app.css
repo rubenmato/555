@@ -127,6 +127,26 @@ button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit
 
 .btn-row{display:flex;flex-direction:column;gap:6px}
 
+/* ── patterns + placement chips ── */
+.pattern-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pat{
+  position:relative;aspect-ratio:1/1;border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;cursor:pointer;padding:0;background:var(--panel-2)
+}
+.pat canvas{width:100%;height:100%;display:block}
+.pat span{
+  position:absolute;left:0;right:0;bottom:0;font-family:var(--mono);font-size:7.5px;letter-spacing:.04em;
+  text-transform:uppercase;background:rgba(0,0,0,.62);color:#fff;padding:2px 1px;text-align:center
+}
+.pat.is-active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{
+  border:1px solid var(--line);background:var(--panel-2);border-radius:99px;padding:6px 10px;cursor:pointer;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--muted);white-space:nowrap
+}
+.chip:hover{border-color:var(--muted)}
+.chip.is-active{border-color:var(--accent);color:var(--ink);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+
 /* ── graphics / shapes ── */
 .graphic-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .gr{
@@ -275,6 +295,7 @@ input[type=range]{width:100%;accent-color:var(--accent);height:16px}
   .mobilebar button.is-active{color:var(--accent)}
   .topbar__actions .btn:not(.btn--accent):not(#btnUndo):not(#btnRedo):not(#btnSave){display:none}
   .topbar__actions .sep{display:none}
+  .toast{bottom:68px}
   .mobile-only{display:block}
   .stage__title{display:none}
 }

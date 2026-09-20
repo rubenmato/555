@@ -141,6 +141,26 @@ window.SD = window.SD || {};
     return c;
   };
 
+  /** diagonal stitch hatch used by the embroidery finish */
+  SD.stitchTexture = function () {
+    if (cache.stitch) return cache.stitch;
+    const s = 24, c = document.createElement('canvas');
+    c.width = c.height = s;
+    const x = c.getContext('2d');
+    x.clearRect(0, 0, s, s);
+    x.lineCap = 'round';
+    for (let i = -1; i < 4; i++) {
+      x.strokeStyle = 'rgba(255,255,255,.34)';
+      x.lineWidth = 3.4;
+      x.beginPath(); x.moveTo(i * 8, 0); x.lineTo(i * 8 + s, s); x.stroke();
+      x.strokeStyle = 'rgba(0,0,0,.30)';
+      x.lineWidth = 2.2;
+      x.beginPath(); x.moveTo(i * 8 + 4, 0); x.lineTo(i * 8 + 4 + s, s); x.stroke();
+    }
+    cache.stitch = c;
+    return c;
+  };
+
   /* ── misc ── */
   SD.download = function (url, name) {
     const a = document.createElement('a');

@@ -7,8 +7,12 @@
 
   /* ───────────────── state ───────────────── */
   const state = {
+    brand: '555 STUDIO',
     garment: 'tee',
     color: '#111214',
+    accentColor: null,
+    pattern: { id: 'none', color: '#f4f2ec', scale: 1, rot: 0, opacity: 1, graphic: 'star', text: '555', font: 'archivo' },
+    zone: 'main',
     view: 'front',
     printArea: true,
     texture: true,
@@ -35,7 +39,7 @@
   function newLayer(o) {
     const L = {
       id: SD.uid(), seed: (Math.random() * 9999) | 0, x: 500, y: 460, rot: 0,
-      opacity: 1, distress: 0, hidden: false, locked: false, flipX: false
+      opacity: 1, distress: 0, finish: 'print', hidden: false, locked: false, flipX: false
     };
     if (o.type === 'text') {
       Object.assign(L, {
@@ -57,7 +61,7 @@
     return def ? def.name : L.type;
   }
 
-  function printRect() { return SD.GARMENTS[state.garment].views[state.view].print; }
+  function printRect() { return SD.zoneRect(state.garment, state.view, state.zone); }
 
   function addLayer(partial, quiet) {
     const r = printRect();
@@ -71,7 +75,10 @@
   /* ───────────────── history ───────────────── */
   const hist = { stack: [], at: -1 };
   function snapshot() {
-    return JSON.stringify({ garment: state.garment, color: state.color, view: state.view, layers: state.layers });
+    return JSON.stringify({
+      brand: state.brand, garment: state.garment, color: state.color, accentColor: state.accentColor,
+      pattern: state.pattern, view: state.view, layers: state.layers
+    });
   }
   function commit() {
     const s = snapshot();
@@ -86,7 +93,13 @@
   function restore(s) {
     const o = JSON.parse(s);
     state.garment = o.garment; state.color = o.color; state.view = o.view; state.layers = o.layers;
+    if (o.brand) state.brand = o.brand;
+    state.accentColor = o.accentColor || null;
+    if (o.pattern) state.pattern = o.pattern;
     if (!layersNow().some((l) => l.id === state.sel)) state.sel = null;
+    $('#brandName').value = state.brand;
+    buildGarments(); buildSwatches(); buildAccent(); buildPatterns(); buildPatternSliders();
+    syncPatternOpts(); buildZones();
     syncChrome(); paint(); buildLayers(); buildProps();
   }
   function undo() { if (hist.at > 0) { hist.at--; restore(hist.stack[hist.at]); refreshHistBtns(); autosave(); } }
@@ -245,7 +258,8 @@
         const prevKind = SD.GARMENTS[state.garment].kind;
         state.garment = id;
         if (SD.GARMENTS[id].kind !== prevKind) state.color = SD.PALETTES[SD.GARMENTS[id].kind][0];
-        buildGarments(); buildSwatches(); syncChrome(); commit(); paint(); buildProps();
+        buildGarments(); buildSwatches(); buildAccent(); buildZones(); buildPatterns();
+        syncChrome(); commit(); paint(); buildProps();
       });
       grid.appendChild(card);
     });
@@ -260,12 +274,146 @@
       b.style.background = c;
       b.addEventListener('click', function () {
         state.color = c; $('#colorCustom').value = c;
-        buildSwatches(); buildGarments(); commit(); paint();
+        buildSwatches(); buildGarments(); buildPatterns(); commit(); paint();
       });
       box.appendChild(b);
     });
     $('#colorCustom').value = state.color;
   }
+
+  $('#brandName').addEventListener('input', function (e) {
+    state.brand = e.target.value || '555 STUDIO';
+    if (state.pattern.id === 'wordmark' && !state.pattern.custom) {
+      state.pattern.text = state.brand;
+      $('#wordText').value = state.pattern.text;
+      buildPatterns();
+    }
+    paint();
+  });
+  $('#brandName').addEventListener('change', commit);
+
+  /* ── contrast panels ── */
+  function accentColor() { return SD.accentFor(state); }
+  function buildAccent() {
+    const g = SD.GARMENTS[state.garment];
+    const has = ['front', 'back'].some(function (v) {
+      return (g.views[v].accent || []).length;
+    });
+    $('#accentBlock').hidden = !has;
+    if (!has) return;
+    const box = $('#accentSwatches');
+    box.innerHTML = '';
+    SD.PALETTES[g.kind].forEach(function (c) {
+      const b = el('button', { class: 'sw' + (c.toLowerCase() === accentColor().toLowerCase() ? ' is-active' : ''), title: c });
+      b.style.background = c;
+      b.addEventListener('click', function () {
+        state.accentColor = c;
+        $('#accentCustom').value = c;
+        buildAccent(); commit(); paint();
+      });
+      box.appendChild(b);
+    });
+    $('#accentCustom').value = accentColor();
+  }
+  $('#accentCustom').addEventListener('input', function (e) {
+    state.accentColor = e.target.value; buildAccent(); paint();
+  });
+  $('#accentCustom').addEventListener('change', commit);
+
+  /* ── all-over prints ── */
+  function patternSwatch(id) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 54;
+    const x = c.getContext('2d');
+    if (id === 'none') {
+      x.fillStyle = state.color;
+      x.fillRect(0, 0, 54, 54);
+      x.strokeStyle = 'rgba(128,128,128,.7)';
+      x.lineWidth = 2;
+      x.beginPath(); x.moveTo(8, 46); x.lineTo(46, 8); x.stroke();
+      return c;
+    }
+    const pc = SD.patternCanvas(id, state.color, state.pattern.color,
+      { graphic: state.pattern.graphic, text: state.pattern.text, font: state.pattern.font });
+    if (pc) x.drawImage(pc, 0, 0, SD.PATTERNS[id].full ? 54 : 27, SD.PATTERNS[id].full ? 54 : 27,
+      0, 0, 54, 54);
+    return c;
+  }
+  function buildPatterns() {
+    const grid = $('#patternGrid');
+    grid.innerHTML = '';
+    SD.PATTERN_ORDER.forEach(function (id) {
+      const b = el('button', { class: 'pat' + (id === state.pattern.id ? ' is-active' : ''), title: SD.PATTERNS[id].name });
+      b.appendChild(patternSwatch(id));
+      b.appendChild(el('span', null, SD.PATTERNS[id].name));
+      b.addEventListener('click', function () {
+        state.pattern.id = id;
+        if (id === 'wordmark' && !state.pattern.custom) state.pattern.text = state.brand;
+        syncPatternOpts(); buildPatterns(); commit(); paint();
+      });
+      grid.appendChild(b);
+    });
+  }
+  function syncPatternOpts() {
+    const on = state.pattern.id !== 'none';
+    $('#patternOpts').hidden = !on;
+    $('#monoRow').hidden = state.pattern.id !== 'monogram';
+    $('#wordRow').hidden = state.pattern.id !== 'wordmark';
+    $('#patternColor').value = state.pattern.color;
+    $('#wordText').value = state.pattern.text || '';
+  }
+  function buildPatternSliders() {
+    const box = $('#patternSliders');
+    box.innerHTML = '';
+    const mk = function (label, key, min, max, step, fmt) {
+      const wrapEl = el('label', { class: 'slider' });
+      const head = el('span', null, label + '<b>' + fmt(state.pattern[key]) + '</b>');
+      const inp = el('input', { type: 'range', min: min, max: max, step: step });
+      inp.value = state.pattern[key];
+      inp.addEventListener('input', function () {
+        state.pattern[key] = parseFloat(inp.value);
+        head.querySelector('b').textContent = fmt(state.pattern[key]);
+        paint();
+      });
+      inp.addEventListener('change', function () { commit(); buildPatterns(); });
+      wrapEl.appendChild(head); wrapEl.appendChild(inp);
+      box.appendChild(wrapEl);
+    };
+    mk('Scale', 'scale', 0.25, 4, 0.05, (v) => SD.round(v, 2) + '×');
+    mk('Angle', 'rot', -90, 90, 1, (v) => Math.round(v) + '°');
+    mk('Strength', 'opacity', 0.1, 1, 0.01, (v) => Math.round(v * 100) + '%');
+  }
+  $('#patternColor').addEventListener('input', function (e) {
+    state.pattern.color = e.target.value; paint();
+  });
+  $('#patternColor').addEventListener('change', function () { commit(); buildPatterns(); });
+  $('#wordText').addEventListener('input', function (e) {
+    state.pattern.text = e.target.value; state.pattern.custom = true; paint();
+  });
+  $('#wordText').addEventListener('change', function () { commit(); buildPatterns(); });
+
+  /* ── placement zones ── */
+  function buildZones() {
+    const box = $('#zoneChips');
+    box.innerHTML = '';
+    const zs = SD.GARMENTS[state.garment].views[state.view].zones;
+    if (!zs.some((z) => z.id === state.zone)) state.zone = zs[0].id;
+    zs.forEach(function (z) {
+      const b = el('button', { class: 'chip' + (z.id === state.zone ? ' is-active' : '') }, z.name);
+      b.addEventListener('click', function () {
+        state.zone = z.id;
+        buildZones(); paint();
+        SD.toast(z.name.toLowerCase() + ' — ' + printSizeLabel());
+      });
+      box.appendChild(b);
+    });
+  }
+  /** the selected placement in centimetres, the way a printer quotes it */
+  function printSizeLabel() {
+    const r = printRect(), cm = (SD.GARMENT_CM[state.garment] || 120) / 1000;
+    return SD.round(r.w * cm, 1) + ' × ' + SD.round(r.h * cm, 1) + ' cm';
+  }
+  SD.printSizeLabel = printSizeLabel;
 
   $('#colorCustom').addEventListener('input', function (e) {
     state.color = e.target.value; buildSwatches(); paint();
@@ -277,6 +425,7 @@
     if (state.view === v) return;
     state.view = v;
     state.sel = null;
+    buildZones();
     syncChrome(); paint(); buildLayers(); buildProps();
   }
   $$('#viewSegment button, #viewSegment2 button').forEach(function (b) {
@@ -396,7 +545,8 @@
       else if (L.type === 'image') thumb.innerHTML = '<img src="' + L.src + '" alt="" />';
       else thumb.innerHTML = SD.graphicSvg((L.type === 'shape' ? SD.SHAPES : SD.GRAPHICS)[L.gid]);
       li.appendChild(thumb);
-      li.appendChild(el('div', { class: 'ly__name' }, layerName(L) + '<small>' + L.type + (L.locked ? ' · locked' : '') + '</small>'));
+      const meta = L.type + (L.finish && L.finish !== 'print' ? ' · ' + L.finish : '') + (L.locked ? ' · locked' : '');
+      li.appendChild(el('div', { class: 'ly__name' }, layerName(L) + '<small>' + meta + '</small>'));
 
       const btns = el('div', { class: 'ly__btns' });
       const eye = el('button', { title: 'Show / hide' }, L.hidden ? '◌' : '●');
@@ -556,6 +706,12 @@
       box.appendChild(slider('Size', L.w, 30, 1200, 1, (v) => Math.round(v), function (v) { L.w = v; L.h = v * ratio; }));
     }
 
+    box.appendChild(el('div', { class: 'label' }, 'Finish'));
+    box.appendChild(miniRow([
+      { t: 'PRINT', v: 'print' }, { t: 'PUFF', v: 'puff' }, { t: 'EMB', v: 'embroidery' },
+      { t: 'FOIL', v: 'foil' }, { t: 'VINYL', v: 'vinyl' }
+    ], L.finish || 'print', function (v) { L.finish = v; }));
+
     box.appendChild(slider('Rotation', L.rot, -180, 180, 1, (v) => Math.round(v) + '°', (v) => { L.rot = v; }));
     box.appendChild(slider('Distress', L.distress, 0, 0.9, 0.01, (v) => Math.round(v * 100) + '%', (v) => { L.distress = v; }));
     box.appendChild(slider('Opacity', L.opacity, 0.05, 1, 0.01, (v) => Math.round(v * 100) + '%', (v) => { L.opacity = v; }));
@@ -642,6 +798,27 @@
   }
   $('#btnExport').addEventListener('click', exportPng);
 
+  /* ── sheets ── */
+  function sheetStem(kind) {
+    return String(state.brand || '555').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') +
+      '-' + kind + '-' + Date.now().toString(36);
+  }
+  function exportTechPack() {
+    const c = SD.Sheets.techPack(state);
+    SD.download(c.toDataURL('image/png'), sheetStem('techpack') + '.png');
+    SD.toast('tech pack exported');
+  }
+  $('#btnTechPack').addEventListener('click', exportTechPack);
+
+  function exportLookbook() {
+    const drops = readDrops();
+    if (!drops.length) { SD.toast('save some pieces first'); return; }
+    const c = SD.Sheets.lookbook(drops, state.brand);
+    SD.download(c.toDataURL('image/png'), sheetStem('lookbook') + '.png');
+    SD.toast('lookbook exported');
+  }
+  $('#btnLookbook').addEventListener('click', exportLookbook);
+
   function readDrops() {
     try { return JSON.parse(localStorage.getItem(LS_DROPS) || '[]'); } catch (e) { return []; }
   }
@@ -681,7 +858,8 @@
       });
       card.appendChild(img);
       const meta = el('div', { class: 'drop__meta' });
-      meta.appendChild(el('span', null, d.name));
+      const g = d.design && SD.GARMENTS[d.design.garment];
+      meta.appendChild(el('span', null, (g ? g.name : d.name) + ' · ' + (d.design ? d.design.color : '')));
       const x = el('button', { title: 'Delete' }, '✕');
       x.addEventListener('click', function () {
         writeDrops(readDrops().filter((k) => k.id !== d.id));
@@ -724,18 +902,29 @@
   $('#btnRandom').addEventListener('click', function () {
     const pal = SD.PALETTES[SD.GARMENTS[state.garment].kind];
     state.color = SD.pick(pal);
+    state.accentColor = Math.random() < 0.5 ? SD.pick(pal) : null;
+    if (Math.random() < 0.45) {
+      state.pattern.id = SD.pick(SD.PATTERN_ORDER.slice(1));
+      state.pattern.color = SD.pick(pal);
+      state.pattern.scale = SD.round(0.5 + Math.random() * 1.6, 2);
+      if (state.pattern.id === 'wordmark') { state.pattern.text = state.brand; state.pattern.custom = false; }
+    } else {
+      state.pattern.id = 'none';
+    }
     state.layers[state.view] = [];
     const t = SD.pick(SD.TEMPLATES);
     const parts = t.build(printRect(), palette());
     const made = parts.map(function (p) {
       if (p.type === 'text' && Math.random() < 0.55) p.font = SD.pick(SD.FONTS).id;
       if (Math.random() < 0.3) p.distress = SD.round(Math.random() * 0.4, 2);
+      if (Math.random() < 0.35) p.finish = SD.pick(['puff', 'embroidery', 'foil', 'vinyl']);
       return newLayer(p);
     });
     fitToPrint(made);
     made.forEach(function (L) { layersNow().push(L); });
     state.sel = null;
-    buildSwatches(); buildGarments(); syncChrome();
+    buildSwatches(); buildGarments(); buildAccent(); buildPatterns(); syncPatternOpts();
+    buildPatternSliders(); syncChrome();
     commit(); paint(); buildLayers(); buildProps();
     SD.toast(t.name.toLowerCase());
   });
@@ -791,6 +980,16 @@
       if (saved) document.documentElement.dataset.theme = saved;
     } catch (e) {}
 
+    const mono = $('#monoGraphic');
+    Object.keys(SD.GRAPHICS).forEach(function (gid) {
+      mono.appendChild(el('option', { value: gid }, SD.GRAPHICS[gid].name));
+    });
+    mono.value = state.pattern.graphic;
+    mono.addEventListener('change', function () {
+      state.pattern.graphic = mono.value;
+      buildPatterns(); commit(); paint();
+    });
+
     buildGarments();
     buildSwatches();
     buildPalette('#graphicGrid', SD.GRAPHICS, 'graphic');
@@ -810,7 +1009,9 @@
     } catch (e) {}
     if (!loaded) seedDesign();
 
-    buildGarments(); buildSwatches(); syncChrome(); buildLayers(); buildProps();
+    $('#brandName').value = state.brand;
+    buildGarments(); buildSwatches(); buildAccent(); buildPatterns(); buildPatternSliders();
+    syncPatternOpts(); buildZones(); syncChrome(); buildLayers(); buildProps();
     commit();
     sizeCanvas();
 
