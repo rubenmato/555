@@ -797,21 +797,187 @@
     }
   };
 
+
+  /* ───────────────── COACH JACKET ───────────────── */
+  const COACH_COLLAR_L = 'M 420 300 L 500 344 L 466 404 L 396 328 C 390 318 390 306 396 296 Z';
+  const COACH_BAND = 'M 420 300 C 440 328 468 340 500 340 C 532 340 560 328 580 300 L 586 284 C 562 312 534 324 500 324 C 466 324 438 312 414 284 Z';
+  const COACH_POCKET_L = 'M 322 636 C 356 624 392 620 418 622 L 408 652 C 382 650 348 654 326 664 Z';
+  const coach = {
+    name: 'Coach Jacket', short: 'COACH', kind: 'top',
+    views: {
+      front: {
+        body: [HOOD_BODY, COACH_BAND, COACH_COLLAR_L, mir(COACH_COLLAR_L)],
+        shade: [
+          sh(HOOD_SIDE_L), sh(mir(HOOD_SIDE_L)),
+          sh(HOOD_SLEEVE_SHADE_L, 0.09), sh(mir(HOOD_SLEEVE_SHADE_L), 0.09),
+          sh(HOOD_CUFF_L, 0.12), sh(mir(HOOD_CUFF_L), 0.12), sh(HOOD_HEM, 0.12),
+          sh(COACH_BAND, 0.14), sh(COACH_COLLAR_L, 0.05), sh(mir(COACH_COLLAR_L), 0.05),
+          sh(COACH_POCKET_L, 0.08), sh(mir(COACH_POCKET_L), 0.08),
+          sh('M 488 344 L 512 344 L 512 858 L 488 858 Z', 0.08)
+        ],
+        light: [],
+        lines: [
+          st('M 420 300 L 500 344 L 466 404 L 396 328', 3, 0.22, 'butt'),
+          st(mir('M 420 300 L 500 344 L 466 404 L 396 328'), 3, 0.22, 'butt'),
+          st('M 500 344 L 500 858', 2.5, 0.24),
+          st(COACH_POCKET_L, 3, 0.22), st(mir(COACH_POCKET_L), 3, 0.22),
+          st(HOOD_RIB_LINES, 2, 0.1), st(CUFF_RIB_L, 2, 0.12), st(mir(CUFF_RIB_L), 2, 0.12),
+          st('M 296 796 L 704 796', 3.5, 0.2)
+        ],
+        dots: [{ x: 500, y: 430, r: 10 }, { x: 500, y: 530, r: 10 }, { x: 500, y: 630, r: 10 }, { x: 500, y: 730, r: 10 }],
+        print: { x: 362, y: 404, w: 122, h: 180 }
+      },
+      back: {
+        body: [HOOD_BODY, COACH_BAND],
+        shade: [
+          sh(HOOD_SIDE_L), sh(mir(HOOD_SIDE_L)),
+          sh(HOOD_SLEEVE_SHADE_L, 0.09), sh(mir(HOOD_SLEEVE_SHADE_L), 0.09),
+          sh(HOOD_CUFF_L, 0.12), sh(mir(HOOD_CUFF_L), 0.12), sh(HOOD_HEM, 0.12), sh(COACH_BAND, 0.16)
+        ],
+        light: [],
+        lines: [
+          st('M 420 300 C 440 328 468 340 500 340 C 532 340 560 328 580 300', 3, 0.2, 'butt'),
+          st(HOOD_RIB_LINES, 2, 0.1), st(CUFF_RIB_L, 2, 0.12), st(mir(CUFF_RIB_L), 2, 0.12),
+          st('M 296 796 L 704 796', 3.5, 0.2)
+        ],
+        print: { x: 334, y: 400, w: 332, h: 380 }
+      }
+    }
+  };
+
+  /* ───────────────── FLANNEL / WORK SHIRT ───────────────── */
+  const SHIRT_COLLAR_L = 'M 416 296 L 496 348 L 452 414 L 386 330 C 378 318 380 304 390 292 Z';
+  const SHIRT_POCKET_L = 'M 350 420 L 442 420 L 438 510 L 354 510 Z';
+  const SHIRT_HEM = 'M 296 796 C 380 826 620 826 704 796 L 704 858 L 296 858 Z';
+  const flannel = {
+    name: 'Flannel Shirt', short: 'FLANNEL', kind: 'top',
+    views: {
+      front: {
+        body: [HOOD_BODY, COACH_BAND, SHIRT_COLLAR_L, mir(SHIRT_COLLAR_L)],
+        shade: [
+          sh(HOOD_SIDE_L), sh(mir(HOOD_SIDE_L)),
+          sh(HOOD_SLEEVE_SHADE_L, 0.09), sh(mir(HOOD_SLEEVE_SHADE_L), 0.09),
+          sh(COACH_BAND, 0.14), sh(SHIRT_COLLAR_L, 0.05), sh(mir(SHIRT_COLLAR_L), 0.05),
+          sh(SHIRT_POCKET_L, 0.06), sh(mir(SHIRT_POCKET_L), 0.06),
+          sh('M 474 348 L 526 348 L 526 858 L 474 858 Z', 0.07)
+        ],
+        light: [],
+        lines: [
+          st('M 416 296 L 496 348 L 452 414 L 386 330', 3, 0.22, 'butt'),
+          st(mir('M 416 296 L 496 348 L 452 414 L 386 330'), 3, 0.22, 'butt'),
+          st('M 476 350 L 476 856', 2.5, 0.2), st('M 524 350 L 524 856', 2.5, 0.2),
+          st(SHIRT_POCKET_L, 3, 0.2), st(mir(SHIRT_POCKET_L), 3, 0.2),
+          st('M 350 440 L 442 440', 2.5, 0.16), st(mir('M 350 440 L 442 440'), 2.5, 0.16),
+          st('M 140 566 L 196 652', 3, 0.18), st(mir('M 140 566 L 196 652'), 3, 0.18)
+        ],
+        dots: [{ x: 500, y: 400, r: 9 }, { x: 500, y: 500, r: 9 }, { x: 500, y: 600, r: 9 },
+          { x: 500, y: 700, r: 9 }, { x: 500, y: 800, r: 9 }],
+        print: { x: 356, y: 540, w: 118, h: 200 }
+      },
+      back: {
+        body: [HOOD_BODY, COACH_BAND],
+        shade: [
+          sh(HOOD_SIDE_L), sh(mir(HOOD_SIDE_L)),
+          sh(HOOD_SLEEVE_SHADE_L, 0.09), sh(mir(HOOD_SLEEVE_SHADE_L), 0.09),
+          sh(COACH_BAND, 0.16),
+          sh('M 296 400 C 380 430 620 430 704 400 L 704 424 C 620 454 380 454 296 424 Z', 0.06)
+        ],
+        light: [],
+        lines: [
+          st('M 420 300 C 440 328 468 340 500 340 C 532 340 560 328 580 300', 3, 0.2, 'butt'),
+          st('M 296 424 C 380 454 620 454 704 424', 2.5, 0.14),
+          st('M 140 566 L 196 652', 3, 0.18), st(mir('M 140 566 L 196 652'), 3, 0.18)
+        ],
+        print: { x: 334, y: 440, w: 332, h: 340 }
+      }
+    }
+  };
+
+  /* ───────────────── PUFFER ───────────────── */
+  const PUFF_BODY =
+    'M 300 296 C 364 272 432 260 500 260 C 568 260 636 272 700 296' +
+    ' C 800 336 868 428 892 542 C 882 584 856 614 822 630' +
+    ' C 778 598 738 540 710 486' +
+    ' C 718 620 720 742 714 868 C 636 890 364 890 286 868' +
+    ' C 280 742 282 620 290 486 C 262 540 222 598 178 630' +
+    ' C 144 614 118 584 108 542 C 132 428 200 336 300 296 Z';
+  const PUFF_QUILT = (function () {
+    let d = '';
+    [356, 430, 504, 578, 652, 726, 800].forEach(function (y) {
+      d += 'M 292 ' + y + ' C 400 ' + (y + 14) + ' 600 ' + (y + 14) + ' 708 ' + y + ' ';
+    });
+    return d;
+  })();
+  const PUFF_QUILT_BANDS = [356, 430, 504, 578, 652, 726, 800].map(function (y) {
+    return { d: 'M 292 ' + y + ' C 400 ' + (y + 14) + ' 600 ' + (y + 14) + ' 708 ' + y +
+      ' L 708 ' + (y + 13) + ' C 600 ' + (y + 27) + ' 400 ' + (y + 27) + ' 292 ' + (y + 13) + ' Z', a: 0.07 };
+  });
+  const PUFF_SLEEVE_QUILT_L = (function () {
+    let d = '';
+    for (let i = 0; i < 4; i++) {
+      const t = 0.22 + i * 0.19;
+      d += 'M ' + SD.round(290 - 150 * t, 1) + ' ' + SD.round(420 + 190 * t, 1) +
+        ' L ' + SD.round(150 - 40 * t, 1) + ' ' + SD.round(360 + 230 * t, 1) + ' ';
+    }
+    return d;
+  })();
+  const puffer = {
+    name: 'Puffer', short: 'PUFFER', kind: 'top',
+    views: {
+      front: {
+        body: [PUFF_BODY, 'M 428 306 C 440 332 468 344 500 344 C 532 344 560 332 572 306 L 576 262 C 572 252 562 246 550 246 L 450 246 C 438 246 428 252 424 262 Z'],
+        shade: PUFF_QUILT_BANDS.concat([
+          sh('M 290 486 L 286 868 C 316 878 340 882 356 884 C 342 750 340 600 348 470 Z', 0.07),
+          sh(mir('M 290 486 L 286 868 C 316 878 340 882 356 884 C 342 750 340 600 348 470 Z'), 0.07),
+          sh('M 428 306 C 440 332 468 344 500 344 C 532 344 560 332 572 306 L 576 262 C 572 252 562 246 550 246 L 450 246 C 438 246 428 252 424 262 Z', 0.12),
+          sh('M 486 350 L 514 350 L 514 880 L 486 880 Z', 0.1)
+        ]),
+        light: [sh('M 340 330 C 300 380 276 450 268 520 L 316 540 C 326 466 350 402 386 356 Z', 0.05)],
+        lines: [
+          st(PUFF_QUILT, 2.5, 0.14),
+          st(PUFF_SLEEVE_QUILT_L, 2.5, 0.12), st(mir(PUFF_SLEEVE_QUILT_L), 2.5, 0.12),
+          st('M 500 250 L 500 880', 3, 0.26),
+          st('M 428 306 C 440 332 468 344 500 344 C 532 344 560 332 572 306', 3, 0.18, 'butt')
+        ],
+        stitch: [dash('M 490 262 L 490 874', 2), dash('M 510 262 L 510 874', 2)],
+        dots: [{ x: 500, y: 300, r: 11 }],
+        print: { x: 368, y: 380, w: 112, h: 180 }
+      },
+      back: {
+        body: [PUFF_BODY, 'M 428 306 C 440 332 468 344 500 344 C 532 344 560 332 572 306 L 576 262 C 572 252 562 246 550 246 L 450 246 C 438 246 428 252 424 262 Z'],
+        shade: PUFF_QUILT_BANDS.concat([
+          sh('M 290 486 L 286 868 C 316 878 340 882 356 884 C 342 750 340 600 348 470 Z', 0.07),
+          sh(mir('M 290 486 L 286 868 C 316 878 340 882 356 884 C 342 750 340 600 348 470 Z'), 0.07),
+          sh('M 428 306 C 440 332 468 344 500 344 C 532 344 560 332 572 306 L 576 262 C 572 252 562 246 550 246 L 450 246 C 438 246 428 252 424 262 Z', 0.14)
+        ]),
+        light: [],
+        lines: [
+          st(PUFF_QUILT, 2.5, 0.14),
+          st(PUFF_SLEEVE_QUILT_L, 2.5, 0.12), st(mir(PUFF_SLEEVE_QUILT_L), 2.5, 0.12),
+          st('M 428 306 C 440 332 468 344 500 344 C 532 344 560 332 572 306', 3, 0.18, 'butt')
+        ],
+        print: { x: 330, y: 386, w: 340, h: 380 }
+      }
+    }
+  };
+
   SD.GARMENTS = {
     tee: tee, longsleeve: longsleeve, jersey: jersey, hoodie: hoodie, zip: zip, crew: crew,
-    track: track, varsity: varsity, sweats: sweats, jeans: jeans, cargo: cargo, shorts: shorts,
+    track: track, coach: coach, varsity: varsity, puffer: puffer, flannel: flannel,
+    sweats: sweats, jeans: jeans, cargo: cargo, shorts: shorts,
     cap: cap, beanie: beanie, bucket: bucket, tote: tote
   };
-  SD.GARMENT_ORDER = ['tee', 'longsleeve', 'jersey', 'hoodie', 'zip', 'crew', 'track', 'varsity',
-    'sweats', 'jeans', 'cargo', 'shorts', 'cap', 'beanie', 'bucket', 'tote'];
+  SD.GARMENT_ORDER = ['tee', 'longsleeve', 'jersey', 'hoodie', 'zip', 'crew', 'track', 'coach',
+    'varsity', 'puffer', 'flannel', 'sweats', 'jeans', 'cargo', 'shorts',
+    'cap', 'beanie', 'bucket', 'tote'];
 
   /* fabric palettes */
   /* roughly how many centimetres the 1000-unit design space spans, per garment —
      used to quote real print sizes on the tech pack */
   SD.GARMENT_CM = {
     tee: 130, longsleeve: 128, jersey: 130, hoodie: 132, zip: 132, crew: 132, track: 132,
-    varsity: 134, sweats: 112, jeans: 108, cargo: 112, shorts: 108, cap: 34, beanie: 38,
-    bucket: 42, tote: 58
+    coach: 134, varsity: 134, puffer: 138, flannel: 132, sweats: 112, jeans: 108, cargo: 112,
+    shorts: 108, cap: 34, beanie: 38, bucket: 42, tote: 58
   };
 
   SD.PALETTES = {

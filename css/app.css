@@ -246,12 +246,20 @@ input[type=range]{width:100%;accent-color:var(--accent);height:16px}
 }
 .modal__head{display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid var(--line)}
 .modal__head h2{margin:0;font-family:'Archivo Black',var(--ui);font-size:15px;letter-spacing:.06em}
-.modal__foot{display:flex;gap:8px;padding:14px;border-top:1px solid var(--line)}
+.modal__foot{display:flex;gap:8px;padding:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.modal__foot .btn{flex:1;min-width:130px}
 .drops{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:14px;overflow-y:auto
 }
 .drop{border:1px solid var(--line);border-radius:4px;overflow:hidden;background:var(--panel-2);position:relative}
 .drop img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;background:var(--stage);cursor:pointer}
+.drop__edit{display:flex;gap:4px;padding:7px 8px 0}
+.drop__edit input{
+  background:var(--bg);border:1px solid var(--line);border-radius:3px;padding:5px 6px;min-width:0;
+  font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--ink)
+}
+.drop__edit input[type=text]{flex:1}
+.drop__edit input[type=number]{width:56px}
 .drop__meta{padding:7px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px}
 .drop__meta span{font-family:var(--mono);font-size:9.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .drop__meta button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px}

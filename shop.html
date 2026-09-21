@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Store — 555 STUDIO</title>
+<meta name="description" content="The store page for a collection designed in 555 STUDIO." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%230b0b0c'/><text x='50' y='68' font-family='Arial Black,Arial' font-size='52' font-weight='900' text-anchor='middle' fill='%23d6ff3f'>5</text></svg>" />
+<link rel="stylesheet" href="css/fonts.css" />
+<link rel="stylesheet" href="css/shop.css" />
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav__brand" href="shop.html"><span id="navBrand">555 STUDIO</span></a>
+  <nav class="nav__links">
+    <a href="#shop">SHOP</a>
+    <a href="#lookbook">LOOKBOOK</a>
+    <a href="index.html">STUDIO</a>
+  </nav>
+  <button class="nav__bag" id="btnBag">BAG <span id="bagCount">0</span></button>
+</header>
+
+<section class="hero">
+  <h1 class="hero__word" id="heroBrand">555 STUDIO</h1>
+  <p class="hero__line"><span id="heroSeason">SEASON 01</span> · <span id="heroCount">0 PIECES</span> · DESIGNED IN 555 STUDIO</p>
+  <p class="hero__drop" id="heroDrop">DROP LIVE NOW</p>
+</section>
+
+<main>
+  <section id="shop" class="shop">
+    <div class="shop__head">
+      <h2>THE DROP</h2>
+      <div class="shop__filters" id="filters"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>
+      <h3>NOTHING IN THE DROP YET</h3>
+      <p>Design a piece in the studio and hit SAVE — it lands here.</p>
+      <a class="cta" href="index.html">OPEN THE STUDIO</a>
+    </div>
+  </section>
+
+  <section id="lookbook" class="look">
+    <h2>LOOKBOOK</h2>
+    <div class="look__strip" id="lookStrip"></div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span id="footBrand">555 STUDIO</span>
+  <span>PREVIEW STORE — NO PAYMENTS ARE TAKEN AND NO ORDERS ARE PLACED.</span>
+  <a href="index.html">BACK TO THE STUDIO</a>
+</footer>
+
+<!-- product view -->
+<div class="pdp" id="pdp" hidden>
+  <div class="pdp__card">
+    <button class="pdp__close" id="pdpClose" aria-label="Close">✕</button>
+    <div class="pdp__media">
+      <canvas id="pdpCanvas" width="900" height="900"></canvas>
+      <div class="pdp__views">
+        <button data-view="front" class="is-active">FRONT</button>
+        <button data-view="back">BACK</button>
+      </div>
+    </div>
+    <div class="pdp__info">
+      <h2 id="pdpTitle">—</h2>
+      <p class="pdp__price" id="pdpPrice">—</p>
+      <p class="pdp__desc" id="pdpDesc">—</p>
+      <h4>SIZE</h4>
+      <div class="sizes" id="pdpSizes"></div>
+      <button class="cta cta--full" id="pdpAdd">ADD TO BAG</button>
+      <p class="pdp__note">Preview store — this bag is local to your browser and nothing is ordered.</p>
+      <dl class="spec" id="pdpSpec"></dl>
+    </div>
+  </div>
+</div>
+
+<!-- bag -->
+<aside class="bag" id="bag" hidden>
+  <div class="bag__head">
+    <h2>YOUR BAG</h2>
+    <button id="bagClose" aria-label="Close">✕</button>
+  </div>
+  <div class="bag__items" id="bagItems"></div>
+  <div class="bag__foot">
+    <div class="bag__total"><span>TOTAL</span><b id="bagTotal">£0</b></div>
+    <button class="cta cta--full" id="bagCheckout">CHECKOUT</button>
+    <p class="bag__note">Preview only — no payment is taken.</p>
+  </div>
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<script src="js/util.js"></script>
+<script src="js/garments.js"></script>
+<script src="js/graphics.js"></script>
+<script src="js/patterns.js"></script>
+<script src="js/product.js"></script>
+<script src="js/render.js"></script>
+<script src="js/shop.js"></script>
+</body>
+</html>

@@ -2,19 +2,21 @@
 
 A browser tool for designing your own clothing line: pick a silhouette, colour the
 fabric, run an all-over print, place your artwork, choose how it's printed, then
-export a mockup, a lookbook, or the tech pack you'd hand a factory.
+export a mockup, a lookbook, or the tech pack you'd hand a factory — and put the
+whole collection on a store page under your own brand name.
 
-**No install, no build step, no internet needed.** Double-click `index.html`.
+**No install, no build step, no internet needed.** Double-click `index.html`
+(the studio) or `shop.html` (your store).
 
 ---
 
-## The rack — 16 garments
+## The rack — 19 garments
 
-| Tops | Bottoms | Headwear & bags |
-| --- | --- | --- |
-| Boxy tee · Longsleeve · Football jersey | Sweatpants · Jeans | Cap · Beanie |
-| Hoodie · Zip hoodie · Crewneck | Cargo pants · Shorts | Bucket hat · Tote |
-| Track jacket · Varsity jacket | | |
+| Tops | Outerwear | Bottoms | Headwear & bags |
+| --- | --- | --- | --- |
+| Boxy tee · Longsleeve | Track jacket | Sweatpants | Cap · Beanie |
+| Football jersey · Crewneck | Coach jacket · Varsity | Jeans · Cargo pants | Bucket hat |
+| Hoodie · Zip hoodie | Puffer · Flannel shirt | Shorts | Tote |
 
 Every garment has a front and a back view, drawn as vector artwork that recolours
 properly — shading, seams, ribbed cuffs, kangaroo pockets, denim topstitching and
@@ -56,6 +58,20 @@ fit themselves to the placement you're on.
 | **EXPORT LOOKBOOK** | a contact sheet of the whole collection under your brand name |
 | **TECH PACK** | A4 production sheet: front and back flats, colourway with hex codes, a placement table with real print sizes in cm, the typefaces used, size run and printer notes |
 | **EXPORT / IMPORT .JSON** | move designs between browsers or machines |
+
+## The store page
+
+`shop.html` turns your saved collection into a storefront under your brand name:
+a hero, a filterable product grid, and a product page with a front/back toggle,
+size run, spec table and an auto-written description built from what's actually on
+the garment ("Heavyweight hoodie. Camo all-over print. Puff artwork.").
+
+Product names and prices are generated when you save a piece — "CAMO HOODIE",
+"NO RULES 555 CARGO PANTS" — and you can edit both on the cards in **COLLECTION**.
+
+The bag is a local preview: it remembers what you added in your browser and takes
+no payment, places no order and talks to no server. It's there to show the
+collection as a shop, not to sell from.
 
 Set your brand name at the top of the GARMENT panel — it runs through the wordmark
 print, the lookbook and the tech pack.
@@ -106,10 +122,13 @@ js/util.js        colour maths, seeded noise, fabric + grunge + stitch textures
 js/garments.js    garment blueprints — silhouettes, seams, ribs, placements, scale
 js/graphics.js    vector graphics, shapes, font list
 js/patterns.js    all-over prints
+js/product.js     product names, prices, size runs, descriptions
 js/templates.js   the one-click preset layouts
 js/render.js      canvas renderer, finishes, hit-testing, export
 js/sheets.js      lookbook and tech pack generators
 js/app.js         state, history, interaction, panels, save/load
+js/shop.js        the store page
+shop.html         storefront · css/shop.css its styling
 assets/fonts/     bundled woff2 files
 ```
 

@@ -110,12 +110,19 @@
   }
 
   let saveT = null;
+  function writeCurrent() {
+    try { localStorage.setItem(LS_CUR, snapshot()); } catch (e) { /* quota — ignore */ }
+  }
   function autosave() {
     clearTimeout(saveT);
-    saveT = setTimeout(function () {
-      try { localStorage.setItem(LS_CUR, snapshot()); } catch (e) { /* quota — ignore */ }
-    }, 400);
+    saveT = setTimeout(writeCurrent, 400);
   }
+  /* don't let a pending autosave die when the tab closes or you head to the store */
+  function flushSave() { clearTimeout(saveT); writeCurrent(); }
+  window.addEventListener('pagehide', flushSave);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') flushSave();
+  });
 
   /* ───────────────── canvas ───────────────── */
   const canvas = $('#stage'), wrap = $('#canvasWrap');
@@ -828,13 +835,17 @@
   }
   function saveDrop() {
     const arr = readDrops();
-    const name = SD.GARMENTS[state.garment].short + ' · ' + new Date().toLocaleDateString();
+    const design = JSON.parse(snapshot());
     arr.unshift({
-      id: SD.uid(), name: name, at: Date.now(),
+      id: SD.uid(), at: Date.now(),
+      name: SD.GARMENTS[state.garment].short + ' · ' + new Date().toLocaleDateString(),
+      title: SD.autoTitle(design),
+      price: SD.defaultPrice(state.garment),
+      sizes: SD.sizeRun(state.garment),
       thumb: SD.Render.thumb(state, 240).toDataURL('image/png'),
-      design: JSON.parse(snapshot())
+      design: design
     });
-    if (writeDrops(arr.slice(0, 24))) SD.toast('saved to drops');
+    if (writeDrops(arr.slice(0, 24))) SD.toast('added to the collection');
     buildDrops();
   }
   $('#btnSave').addEventListener('click', saveDrop);
@@ -844,7 +855,8 @@
     const arr = readDrops();
     grid.innerHTML = '';
     if (!arr.length) {
-      grid.appendChild(el('p', { class: 'hint' }, 'Nothing saved yet. Hit SAVE to keep a design here (stored in this browser).'));
+      grid.appendChild(el('p', { class: 'hint' },
+        'Nothing saved yet. Hit SAVE to add a piece — the collection feeds the lookbook and your store page.'));
       return;
     }
     arr.forEach(function (d) {
@@ -857,6 +869,26 @@
         SD.toast('loaded');
       });
       card.appendChild(img);
+
+      /* product name + price travel with the piece into the store page */
+      const m = SD.productMeta(d);
+      const edit = el('div', { class: 'drop__edit' });
+      const nameIn = el('input', { type: 'text', value: m.title, maxlength: '40', spellcheck: 'false' });
+      const priceIn = el('input', { type: 'number', value: m.price, min: '0', max: '9999', step: '5' });
+      function persist() {
+        const all = readDrops();
+        const row = all.filter((k) => k.id === d.id)[0];
+        if (!row) return;
+        row.title = nameIn.value.toUpperCase().slice(0, 40) || m.title;
+        row.price = Math.max(0, parseInt(priceIn.value, 10) || 0);
+        writeDrops(all);
+      }
+      nameIn.addEventListener('change', persist);
+      priceIn.addEventListener('change', persist);
+      edit.appendChild(nameIn);
+      edit.appendChild(priceIn);
+      card.appendChild(edit);
+
       const meta = el('div', { class: 'drop__meta' });
       const g = d.design && SD.GARMENTS[d.design.garment];
       meta.appendChild(el('span', null, (g ? g.name : d.name) + ' · ' + (d.design ? d.design.color : '')));
