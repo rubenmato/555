@@ -4,8 +4,8 @@
 
   const PRICE = {
     tee: 55, longsleeve: 70, jersey: 80, hoodie: 110, zip: 125, crew: 100, track: 145,
-    coach: 160, varsity: 240, puffer: 260, flannel: 120, sweats: 95, jeans: 120,
-    cargo: 130, shorts: 75, cap: 45, beanie: 40, bucket: 50, tote: 30
+    coach: 160, denim: 170, varsity: 240, puffer: 260, flannel: 120, sweats: 95, jeans: 120,
+    cargo: 130, shorts: 75, mesh: 70, cap: 45, beanie: 40, bucket: 50, tote: 30, socks: 18
   };
 
   SD.defaultPrice = function (garment) { return PRICE[garment] || 60; };
@@ -13,6 +13,7 @@
 
   SD.sizeRun = function (garment) {
     const kind = (SD.GARMENTS[garment] || {}).kind;
+    if (garment === 'socks') return ['UK 6-8', 'UK 9-11', 'UK 12-14'];
     if (kind === 'head' || kind === 'bag') return ['ONE SIZE'];
     if (kind === 'bottom') return ['28', '30', '32', '34', '36'];
     return ['S', 'M', 'L', 'XL', 'XXL'];
@@ -46,7 +47,8 @@
   SD.describe = function (design) {
     const g = SD.GARMENTS[design.garment];
     const bits = [];
-    const weight = { top: 'Heavyweight', bottom: 'Relaxed-fit', head: 'Structured', bag: 'Heavy canvas' }[g.kind] || '';
+    const weight = design.garment === 'socks' ? 'Ribbed cotton' :
+      { top: 'Heavyweight', bottom: 'Relaxed-fit', head: 'Structured', bag: 'Heavy canvas' }[g.kind] || '';
     bits.push(weight + ' ' + g.name.toLowerCase() + '.');
     if (design.pattern && design.pattern.id !== 'none') {
       bits.push(SD.PATTERNS[design.pattern.id].name.toLowerCase() + ' all-over print.');

@@ -10,13 +10,13 @@ whole collection on a store page under your own brand name.
 
 ---
 
-## The rack — 19 garments
+## The rack — 22 garments
 
-| Tops | Outerwear | Bottoms | Headwear & bags |
+| Tops | Outerwear | Bottoms | Headwear & extras |
 | --- | --- | --- | --- |
-| Boxy tee · Longsleeve | Track jacket | Sweatpants | Cap · Beanie |
-| Football jersey · Crewneck | Coach jacket · Varsity | Jeans · Cargo pants | Bucket hat |
-| Hoodie · Zip hoodie | Puffer · Flannel shirt | Shorts | Tote |
+| Boxy tee · Longsleeve | Track jacket · Coach jacket | Sweatpants · Jeans | Cap · Beanie |
+| Football jersey · Crewneck | Denim jacket · Varsity | Cargo pants · Shorts | Bucket hat |
+| Hoodie · Zip hoodie | Puffer · Flannel shirt | Mesh shorts | Tote · Socks |
 
 Every garment has a front and a back view, drawn as vector artwork that recolours
 properly — shading, seams, ribbed cuffs, kangaroo pockets, denim topstitching and
@@ -45,6 +45,10 @@ anywhere.
 **Finishes** — screen print, puff, embroidery, foil and vinyl, per layer, plus a
 distress slider that eats into the ink like a worn print.
 
+**Scenes** — the backdrop behind the garment, carried into your exports: studio
+sweep, noir, concrete, blueprint, spotlight, or a photo you upload. Technical flats
+on the tech pack always stay on white.
+
 **Presets** — eight one-click layouts (box logo, arch college, small chest tag,
 gothic, flame hit, stack type, circle seal, big hit) that measure their own type and
 fit themselves to the placement you're on.
@@ -69,9 +73,25 @@ the garment ("Heavyweight hoodie. Camo all-over print. Puff artwork.").
 Product names and prices are generated when you save a piece — "CAMO HOODIE",
 "NO RULES 555 CARGO PANTS" — and you can edit both on the cards in **COLLECTION**.
 
-The bag is a local preview: it remembers what you added in your browser and takes
-no payment, places no order and talks to no server. It's there to show the
-collection as a shop, not to sell from.
+### Selling for real
+
+Paste a checkout link from your own payment provider (Stripe Payment Links, PayPal,
+Gumroad — anything with a URL) into a product's **payment link** field in the
+collection. That product's button becomes **BUY NOW** and hands off to that page,
+and the store names the host it's sending you to.
+
+Without a link the bag stays a local preview: it remembers what you added in your
+browser and takes no payment, places no order and talks to no server. 555 STUDIO
+never handles money or card details either way — your provider does.
+
+### Sharing a lookbook
+
+**COPY SHARE LINK** packs the whole collection into a `lookbook.html#…` URL —
+compressed, no server, no account. Anyone who opens it sees your pieces rendered
+from scratch in their own browser, with prices, descriptions and BUY buttons where
+you've set a link. Uploaded artwork and photo backdrops are too heavy for a URL, so
+they're left out of the link (the app tells you when that happens) — use
+`EXPORT .JSON` for those.
 
 Set your brand name at the top of the GARMENT panel — it runs through the wordmark
 print, the lookbook and the tech pack.
@@ -127,8 +147,11 @@ js/templates.js   the one-click preset layouts
 js/render.js      canvas renderer, finishes, hit-testing, export
 js/sheets.js      lookbook and tech pack generators
 js/app.js         state, history, interaction, panels, save/load
+js/share.js       packs a collection into a shareable URL
 js/shop.js        the store page
-shop.html         storefront · css/shop.css its styling
+js/lookbook.js    the shareable lookbook page
+shop.html         storefront   · css/shop.css its styling
+lookbook.html     shared lookbook
 assets/fonts/     bundled woff2 files
 ```
 

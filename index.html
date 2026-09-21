@@ -85,6 +85,13 @@
         <div id="patternSliders"></div>
       </div>
 
+      <h3 class="label">Scene</h3>
+      <div class="chips" id="sceneChips"></div>
+      <div class="btn-row" id="scenePhotoRow" hidden>
+        <button class="btn btn--wide" id="btnScenePhoto">UPLOAD BACKDROP</button>
+        <input type="file" id="sceneInput" accept="image/*" hidden />
+      </div>
+
       <h3 class="label">Placement</h3>
       <div class="chips" id="zoneChips"></div>
 
@@ -185,6 +192,7 @@
     <div class="modal__foot">
       <button class="btn btn--wide btn--accent" id="btnLookbook">EXPORT LOOKBOOK</button>
       <a class="btn btn--wide" href="shop.html">OPEN STORE</a>
+      <button class="btn btn--wide" id="btnShare">COPY SHARE LINK</button>
       <button class="btn btn--wide" id="btnExportJson">EXPORT .JSON</button>
       <button class="btn btn--wide" id="btnImportJson">IMPORT .JSON</button>
       <input type="file" id="jsonInput" accept="application/json" hidden />
@@ -199,6 +207,7 @@
 <script src="js/graphics.js"></script>
 <script src="js/patterns.js"></script>
 <script src="js/product.js"></script>
+<script src="js/share.js"></script>
 <script src="js/render.js"></script>
 <script src="js/sheets.js"></script>
 <script src="js/templates.js"></script>

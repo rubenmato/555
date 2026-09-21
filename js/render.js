@@ -488,6 +488,24 @@
     ctx.globalCompositeOperation = 'source-over';
   }
 
+  /** the backdrop: a generated scene, or a photo the designer dropped in */
+  function paintScene(ctx, state, opts) {
+    const id = state.scene;
+    if (!id || id === 'none') return;
+    if (id === 'photo') {
+      if (!state.sceneImage) return;
+      const im = R.image(state.sceneImage, opts.onload);
+      if (!im._ok) return;
+      /* cover-fit the photo across the square */
+      const k = Math.max(SPACE / im.width, SPACE / im.height);
+      const w = im.width * k, h = im.height * k;
+      ctx.drawImage(im, (SPACE - w) / 2, (SPACE - h) / 2, w, h);
+      return;
+    }
+    const c = SD.sceneCanvas(id, { tint: state.sceneTint });
+    if (c) ctx.drawImage(c, 0, 0, SPACE, SPACE);
+  }
+
   /* ── main ── */
   /** opts: {res, flat (no stage extras), selection (layer id), onload} */
   R.draw = function (canvas, state, opts) {
@@ -498,6 +516,7 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (opts.bg) { ctx.fillStyle = opts.bg; ctx.fillRect(0, 0, canvas.width, canvas.height); }
     ctx.setTransform(res, 0, 0, res, 0, 0);
+    if (!opts.noScene) paintScene(ctx, state, opts);
 
     const env = { res: res, pxW: canvas.width, pxH: canvas.height, onload: opts.onload, flat: opts.flat };
     const info = paintGarment(ctx, state, env);
@@ -608,10 +627,10 @@
   };
 
   /* ── export ── */
-  R.exportCanvas = function (state, px) {
+  R.exportCanvas = function (state, px, opts) {
     const c = document.createElement('canvas');
     c.width = c.height = px || 2000;
-    R.draw(c, state, { res: c.width / SPACE, flat: true });
+    R.draw(c, state, Object.assign({ res: c.width / SPACE, flat: true }, opts || {}));
     return c;
   };
   R.thumb = function (state, px) {

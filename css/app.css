@@ -260,6 +260,11 @@ input[type=range]{width:100%;accent-color:var(--accent);height:16px}
 }
 .drop__edit input[type=text]{flex:1}
 .drop__edit input[type=number]{width:56px}
+.drop__link{
+  display:block;width:calc(100% - 16px);margin:5px 8px 0;background:var(--bg);border:1px solid var(--line);
+  border-radius:3px;padding:5px 6px;font-family:var(--mono);font-size:9.5px;color:var(--ink)
+}
+.drop__link::placeholder{color:var(--muted)}
 .drop__meta{padding:7px 8px;display:flex;align-items:center;justify-content:space-between;gap:6px}
 .drop__meta span{font-family:var(--mono);font-size:9.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .drop__meta button{background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px}

@@ -13,6 +13,8 @@
     accentColor: null,
     pattern: { id: 'none', color: '#f4f2ec', scale: 1, rot: 0, opacity: 1, graphic: 'star', text: '555', font: 'archivo' },
     zone: 'main',
+    scene: 'none',
+    sceneImage: null,
     view: 'front',
     printArea: true,
     texture: true,
@@ -77,7 +79,8 @@
   function snapshot() {
     return JSON.stringify({
       brand: state.brand, garment: state.garment, color: state.color, accentColor: state.accentColor,
-      pattern: state.pattern, view: state.view, layers: state.layers
+      pattern: state.pattern, scene: state.scene, sceneImage: state.sceneImage,
+      view: state.view, layers: state.layers
     });
   }
   function commit() {
@@ -99,7 +102,7 @@
     if (!layersNow().some((l) => l.id === state.sel)) state.sel = null;
     $('#brandName').value = state.brand;
     buildGarments(); buildSwatches(); buildAccent(); buildPatterns(); buildPatternSliders();
-    syncPatternOpts(); buildZones();
+    syncPatternOpts(); buildZones(); buildScenes();
     syncChrome(); paint(); buildLayers(); buildProps();
   }
   function undo() { if (hist.at > 0) { hist.at--; restore(hist.stack[hist.at]); refreshHistBtns(); autosave(); } }
@@ -398,6 +401,36 @@
     state.pattern.text = e.target.value; state.pattern.custom = true; paint();
   });
   $('#wordText').addEventListener('change', function () { commit(); buildPatterns(); });
+
+  /* ── scenes ── */
+  function buildScenes() {
+    const box = $('#sceneChips');
+    box.innerHTML = '';
+    SD.SCENE_ORDER.forEach(function (id) {
+      const b = el('button', { class: 'chip' + (id === state.scene ? ' is-active' : '') }, SD.SCENES[id].name);
+      b.addEventListener('click', function () {
+        state.scene = id;
+        if (id === 'photo' && !state.sceneImage) $('#sceneInput').click();
+        buildScenes(); commit(); paint();
+      });
+      box.appendChild(b);
+    });
+    $('#scenePhotoRow').hidden = state.scene !== 'photo';
+  }
+  $('#btnScenePhoto').addEventListener('click', function () { $('#sceneInput').click(); });
+  $('#sceneInput').addEventListener('change', function (e) {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const rd = new FileReader();
+    rd.onload = function () {
+      state.sceneImage = rd.result;
+      state.scene = 'photo';
+      buildScenes(); commit(); paint();
+      SD.toast('backdrop set');
+    };
+    rd.readAsDataURL(f);
+    e.target.value = '';
+  });
 
   /* ── placement zones ── */
   function buildZones() {
@@ -817,6 +850,36 @@
   }
   $('#btnTechPack').addEventListener('click', exportTechPack);
 
+  /* a link that carries the whole collection — no server involved */
+  async function shareLink() {
+    const drops = readDrops();
+    if (!drops.length) { SD.toast('save some pieces first'); return; }
+    const base = location.href.replace(/[^/]*$/, '') + 'lookbook.html#';
+    const payload = { brand: state.brand, season: 'LOOKBOOK', drops: drops.map(function (d) {
+      return { id: d.id, title: d.title, price: d.price, sizes: d.sizes, link: d.link, design: d.design };
+    }) };
+
+    let hash = await SD.Share.encode(payload);
+    let note = 'share link copied';
+    if (base.length + hash.length > 60000) {
+      const slim = SD.Share.slim(payload.drops);
+      hash = await SD.Share.encode({ brand: payload.brand, season: payload.season, drops: slim.drops });
+      note = 'link copied — uploaded artwork left out (too heavy for a link)';
+    }
+    const url = base + hash;
+    if (base.length + hash.length > 60000) {
+      SD.toast('collection too big for a link — export .json instead');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      SD.toast(note);
+    } catch (e) {
+      window.prompt('Copy your lookbook link:', url);
+    }
+  }
+  $('#btnShare').addEventListener('click', function () { shareLink(); });
+
   function exportLookbook() {
     const drops = readDrops();
     if (!drops.length) { SD.toast('save some pieces first'); return; }
@@ -875,19 +938,30 @@
       const edit = el('div', { class: 'drop__edit' });
       const nameIn = el('input', { type: 'text', value: m.title, maxlength: '40', spellcheck: 'false' });
       const priceIn = el('input', { type: 'number', value: m.price, min: '0', max: '9999', step: '5' });
+      const linkIn = el('input', {
+        type: 'url', value: d.link || '', spellcheck: 'false',
+        placeholder: 'payment link (optional)', title: 'Paste a checkout link from your payment provider'
+      });
+      linkIn.className = 'drop__link';
       function persist() {
         const all = readDrops();
         const row = all.filter((k) => k.id === d.id)[0];
         if (!row) return;
         row.title = nameIn.value.toUpperCase().slice(0, 40) || m.title;
         row.price = Math.max(0, parseInt(priceIn.value, 10) || 0);
+        const url = linkIn.value.trim();
+        if (!url) row.link = '';
+        else if (/^https?:\/\//i.test(url)) { row.link = url; linkIn.setCustomValidity(''); }
+        else { linkIn.value = row.link || ''; SD.toast('links must start with https://'); }
         writeDrops(all);
       }
       nameIn.addEventListener('change', persist);
       priceIn.addEventListener('change', persist);
+      linkIn.addEventListener('change', persist);
       edit.appendChild(nameIn);
       edit.appendChild(priceIn);
       card.appendChild(edit);
+      card.appendChild(linkIn);
 
       const meta = el('div', { class: 'drop__meta' });
       const g = d.design && SD.GARMENTS[d.design.garment];
@@ -1038,6 +1112,8 @@
           if (o.brand) state.brand = o.brand;
           state.accentColor = o.accentColor || null;
           if (o.pattern) state.pattern = o.pattern;
+          state.scene = o.scene || 'none';
+          state.sceneImage = o.sceneImage || null;
           loaded = true;
         }
       }
@@ -1046,7 +1122,7 @@
 
     $('#brandName').value = state.brand;
     buildGarments(); buildSwatches(); buildAccent(); buildPatterns(); buildPatternSliders();
-    syncPatternOpts(); buildZones(); syncChrome(); buildLayers(); buildProps();
+    syncPatternOpts(); buildZones(); buildScenes(); syncChrome(); buildLayers(); buildProps();
     commit();
     sizeCanvas();
 

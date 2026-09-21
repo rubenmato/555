@@ -96,6 +96,15 @@
     $('#lookbook').hidden = !drops.length;
   }
 
+  /** only ever follow a link the designer typed, and only over http(s) */
+  function safeLink(url) {
+    if (!url) return null;
+    try {
+      const u = new URL(url, location.href);
+      return (u.protocol === 'https:' || u.protocol === 'http:') ? u : null;
+    } catch (e) { return null; }
+  }
+
   /* ── product view ── */
   function openProduct(d) {
     current = d;
@@ -139,6 +148,16 @@
       spec.appendChild(row);
     });
 
+    /* a payment link turns the preview bag into a real hand-off */
+    const link = safeLink(d.link);
+    const add = $('#pdpAdd');
+    add.textContent = link ? 'BUY NOW' : 'ADD TO BAG';
+    add.dataset.mode = link ? 'buy' : 'bag';
+    add.title = link ? 'Opens ' + link.hostname + ' in a new tab' : '';
+    $('#pdpNote').textContent = link
+      ? 'Checkout happens on ' + link.hostname + '. This page takes no payment details.'
+      : 'Preview store — this bag is local to your browser and nothing is ordered.';
+
     syncViews();
     drawProduct();
     $('#pdp').hidden = false;
@@ -172,13 +191,18 @@
   $('#pdpAdd').addEventListener('click', function () {
     if (!current) return;
     const meta = SD.productMeta(current);
+    const link = safeLink(current.link);
     if (!currentSize) {
       $('#pdpAdd').textContent = 'PICK A SIZE FIRST';
       return;
     }
+    if (link) {
+      window.open(link.href, '_blank', 'noopener,noreferrer');
+      return;
+    }
     bag.push({
       id: current.id, size: currentSize, title: meta.title, price: meta.price,
-      shot: shot(current, heroView(current), 220)
+      link: current.link || '', shot: shot(current, heroView(current), 220)
     });
     saveBag();
     closeProduct();
@@ -204,6 +228,14 @@
       txt.appendChild(el('b', null, item.title));
       txt.appendChild(el('span', null, 'SIZE ' + item.size + ' · ' + SD.money(item.price)));
       line.appendChild(txt);
+      const link = safeLink(item.link);
+      if (link) {
+        const buy = el('a', {
+          class: 'bagline__buy', href: link.href, target: '_blank', rel: 'noopener noreferrer',
+          title: 'Opens ' + link.hostname
+        }, 'BUY');
+        line.appendChild(buy);
+      }
       const x = el('button', { title: 'Remove' }, '✕');
       x.addEventListener('click', function () { bag.splice(i, 1); saveBag(); });
       line.appendChild(x);
@@ -211,7 +243,19 @@
     });
     const total = bag.reduce(function (n, i) { return n + i.price; }, 0);
     $('#bagTotal').textContent = SD.money(total);
-    $('#bagCheckout').disabled = !bag.length;
+    const links = bag.filter(function (i) { return safeLink(i.link); });
+    const btn = $('#bagCheckout');
+    btn.disabled = !bag.length;
+    if (links.length && links.length === bag.length) {
+      btn.textContent = 'CHECKOUT ITEM BY ITEM';
+      btn.dataset.mode = 'links';
+    } else {
+      btn.textContent = 'CHECKOUT';
+      btn.dataset.mode = 'preview';
+    }
+    $('#bagNote').textContent = links.length
+      ? 'Payment links open on the seller\'s own checkout page, one item at a time.'
+      : 'Preview only — no payment is taken.';
   }
   function openBag() { $('#bag').hidden = false; $('#scrim').hidden = false; }
   function closeBag() { $('#bag').hidden = true; $('#scrim').hidden = true; }
@@ -219,8 +263,15 @@
   $('#bagClose').addEventListener('click', closeBag);
   $('#scrim').addEventListener('click', closeBag);
   $('#bagCheckout').addEventListener('click', function () {
-    $('#bagCheckout').textContent = 'PREVIEW ONLY — NO CHECKOUT';
-    setTimeout(function () { $('#bagCheckout').textContent = 'CHECKOUT'; }, 2200);
+    const btn = $('#bagCheckout');
+    if (btn.dataset.mode === 'links') {
+      const first = bag.filter(function (i) { return safeLink(i.link); })[0];
+      if (first) window.open(safeLink(first.link).href, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    const was = btn.textContent;
+    btn.textContent = 'PREVIEW ONLY — NO CHECKOUT';
+    setTimeout(function () { btn.textContent = was; }, 2200);
   });
 
   document.addEventListener('keydown', function (e) {

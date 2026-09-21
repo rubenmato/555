@@ -152,6 +152,10 @@ h2{font-family:var(--heavy);letter-spacing:.02em}
 .bagline__txt{flex:1;min-width:0}
 .bagline__txt b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.06em;font-weight:400}
 .bagline__txt span{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.bagline__buy{
+  background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:5px 11px;
+  font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;flex:none
+}
 .bagline button{background:none;border:0;color:var(--muted);font-size:14px}
 .bagline button:hover{color:#ff5a3c}
 .bag__foot{padding:16px;border-top:1px solid var(--line)}
@@ -164,4 +168,27 @@ h2{font-family:var(--heavy);letter-spacing:.02em}
   .pdp__card{grid-template-columns:1fr}
   .nav__links{display:none}
   .hero{padding:44px 18px 36px}
+}
+
+
+/* ── shareable lookbook ─────────────────────────────────── */
+.lb .hero{padding:90px 22px 60px}
+.lbmain{max-width:1500px;margin:0 auto;padding:40px 22px 80px}
+.lbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:26px}
+.lbcard{margin:0;background:var(--card);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.lbcard canvas{width:100%;height:auto;display:block}
+.lbcard figcaption{
+  display:flex;align-items:baseline;gap:10px;padding:14px 16px 0;
+  font-family:var(--mono);font-size:12px;letter-spacing:.06em
+}
+.lbcard figcaption b{flex:1;font-weight:400}
+.lbcard__n{color:var(--accent)}
+.lbcard__p{color:var(--muted)}
+.lbcard__buy{
+  background:var(--accent);color:var(--accent-ink);border-radius:99px;padding:4px 12px;
+  font-size:10px;font-weight:700;letter-spacing:.12em
+}
+.lbcard__buy:hover{filter:brightness(1.1)}
+.lbcard__desc{
+  margin:8px 16px 18px;font-size:12px;line-height:1.55;color:var(--muted);font-family:var(--ui)
 }

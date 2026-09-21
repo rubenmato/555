@@ -277,4 +277,111 @@
     return c;
   };
   SD.PATTERN_TILE = TILE;
+
+  /* ── scenes ────────────────────────────────────────────────────────
+     What sits behind the garment in the stage and in exports. Painted
+     across the whole 1000-unit space before anything else. */
+  const sceneCache = {};
+
+  SD.SCENES = {
+    none: { name: 'None' },
+    studio: {
+      name: 'Studio',
+      draw: function (ctx) {
+        const g = ctx.createRadialGradient(500, 330, 60, 500, 560, 760);
+        g.addColorStop(0, '#f2f1ec');
+        g.addColorStop(0.6, '#dedcd4');
+        g.addColorStop(1, '#bfbdb4');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 1000, 1000);
+      }
+    },
+    noir: {
+      name: 'Noir',
+      draw: function (ctx) {
+        const g = ctx.createRadialGradient(500, 320, 40, 500, 560, 780);
+        g.addColorStop(0, '#3a3a41');
+        g.addColorStop(0.55, '#1c1c20');
+        g.addColorStop(1, '#0a0a0c');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 1000, 1000);
+      }
+    },
+    concrete: {
+      name: 'Concrete',
+      draw: function (ctx) {
+        ctx.fillStyle = '#9d9a94';
+        ctx.fillRect(0, 0, 1000, 1000);
+        const rnd = SD.rng(17);
+        for (let i = 0; i < 2600; i++) {
+          ctx.fillStyle = 'rgba(0,0,0,' + (0.02 + rnd() * 0.07) + ')';
+          const r = 2 + rnd() * 16;
+          ctx.beginPath();
+          ctx.arc(rnd() * 1000, rnd() * 1000, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        for (let i = 0; i < 90; i++) {
+          ctx.strokeStyle = 'rgba(255,255,255,' + (0.02 + rnd() * 0.05) + ')';
+          ctx.lineWidth = 1 + rnd() * 3;
+          const x = rnd() * 1000, y = rnd() * 1000;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + (rnd() - 0.5) * 300, y + (rnd() - 0.5) * 300);
+          ctx.stroke();
+        }
+        const v = ctx.createRadialGradient(500, 480, 220, 500, 500, 720);
+        v.addColorStop(0, 'rgba(0,0,0,0)');
+        v.addColorStop(1, 'rgba(0,0,0,.42)');
+        ctx.fillStyle = v;
+        ctx.fillRect(0, 0, 1000, 1000);
+      }
+    },
+    blueprint: {
+      name: 'Blueprint',
+      draw: function (ctx) {
+        ctx.fillStyle = '#16263f';
+        ctx.fillRect(0, 0, 1000, 1000);
+        ctx.strokeStyle = 'rgba(255,255,255,.09)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 1000; i += 25) {
+          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1000); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1000, i); ctx.stroke();
+        }
+        ctx.strokeStyle = 'rgba(255,255,255,.2)';
+        ctx.lineWidth = 1.6;
+        for (let i = 0; i <= 1000; i += 125) {
+          ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 1000); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(1000, i); ctx.stroke();
+        }
+      }
+    },
+    spotlight: {
+      name: 'Spotlight',
+      draw: function (ctx, opt) {
+        ctx.fillStyle = '#0d0d10';
+        ctx.fillRect(0, 0, 1000, 1000);
+        const g = ctx.createRadialGradient(500, 430, 30, 500, 520, 520);
+        const tint = (opt && opt.tint) || '#d6ff3f';
+        g.addColorStop(0, SD.rgba(tint, 0.5));
+        g.addColorStop(0.55, SD.rgba(tint, 0.12));
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, 1000, 1000);
+      }
+    },
+    photo: { name: 'Photo', photo: true }
+  };
+  SD.SCENE_ORDER = ['none', 'studio', 'noir', 'concrete', 'blueprint', 'spotlight', 'photo'];
+
+  SD.sceneCanvas = function (id, opt) {
+    const def = SD.SCENES[id];
+    if (!def || !def.draw) return null;
+    const key = id + '|' + ((opt && opt.tint) || '');
+    if (sceneCache[key]) return sceneCache[key];
+    const c = document.createElement('canvas');
+    c.width = c.height = 1000;
+    def.draw(c.getContext('2d'), opt || {});
+    sceneCache[key] = c;
+    return c;
+  };
 })(window.SD);

@@ -41,7 +41,7 @@
     s.view = view;
     s.printArea = false;
     s.shadow = false;
-    return SD.Render.exportCanvas(s, px || 900);
+    return SD.Render.exportCanvas(s, px || 900, { noScene: true });
   }
 
   /* ── tech pack ─────────────────────────────────────────────────────
